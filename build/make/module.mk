@@ -1,3 +1,7 @@
+# config gcc compiler global options
+CFLAGS := -nostdlib -fno-builtin -nostartfiles -nostdinc -Os -ffunction-sections -fdata-sections -ggdb -Wall
+CFLAGS += -march=rv32g -mabi=ilp32
+
 all: clean $(MODULE)
 
 $(MODULE):$(OBJS)
@@ -8,10 +12,10 @@ $(MODULE):$(OBJS)
 	$(HIDE)mv $(OBJS) $(G_OUTPUT_PATH)/$(MODULE_NAME)/obj
 
 %.o:%.c
-	$(HIDE)$(CC) -c $(CFLAGS) $(LOCAL_FLAGS) -o $@ $<
+	$(HIDE)$(CC) $(CFLAGS) $(LOCAL_FLAGS) -c -o $@ $<
 
 %.o:%.S
-	$(HIDE)$(CC) -c $(CFLAGS) $(LOCAL_FLAGS) -o $@ $<
+	$(HIDE)$(CC) $(CFLAGS) $(LOCAL_FLAGS) -c -o $@ $<
 
 clean:
 	$(HIDE)rm -rf *.a *.o

@@ -6,15 +6,11 @@ TARGET_NAME = zos
 TARGET = $(TARGET_NAME).bin
 
 # config qemu
-QEMU := $(QEMU_PATH)/qemu-system-riscv32
+QEMU := $(QEMU_PATH)/bin/qemu-system-riscv32
 QFLAGS := -nographic -smp 1 -machine virt -bios none -m 128M
 
-# config gcc compiler global options
-CFLAGS := -nostdlib -fno-builtin -nostartfiles -nostdinc -Os -ffunction-sections -fdata-sections -g -Wall
-CFLAGS += -march=rv32g -mabi=ilp32
-
 # config module, this is relative path which from G_PROJECT_PATH
-MODULES := test kernel/startup
+MODULES := test kernel/startup kernel/drivers/uart
 
 # config link global options
 LDFLAGS := -T$(ZOS_LD) -Map=$(TARGET_NAME).map --gc-sections
@@ -38,13 +34,19 @@ $(TARGET):
 	$(HIDE)$(OBJCOPY) -O binary -S $(TARGET_NAME).elf $@
 	$(HIDE)$(OBJDUMP) -d $(TARGET_NAME).elf > $(TARGET_NAME).asm
 
-debug:
+debug: all
 	$(HIDE)echo "Press Ctrl-C and then input 'quit' to exit GDB and QEMU"
 	$(HIDE)echo "Press Ctrl-A-X to quit QEMU"
 	$(HIDE)echo "-------------------------------------------------------"
-	$(HIDE)./kill_qemu.sh
-	$(HIDE)${QEMU} ${QFLAGS} -kernel $(TARGET_NAME).elf -s -S &
-	$(HIDE)${GDB} $(TARGET_NAME).elf -q -x gdbinit
+	$(HIDE)$(G_BUILD_PATH)/script/kill_qemu.sh
+	$(HIDE)${QEMU} ${QFLAGS} -kernel $(G_OUTPUT_PATH)/image/$(TARGET_NAME).elf -s -S &
+	$(HIDE)${GDB} $(G_OUTPUT_PATH)/image/$(TARGET_NAME).elf -q -x $(G_BUILD_PATH)/script/gdbinit
+
+run: all
+	$(HIDE)${QEMU} -M ? | grep virt >/dev/null || exit
+	$(HIDE)echo "Press Ctrl-A and then X to exit QEMU"
+	$(HIDE)echo "------------------------------------"
+	$(HIDE)${QEMU} ${QFLAGS} -kernel $(G_OUTPUT_PATH)/image/$(TARGET_NAME).elf
 
 clean:
 	$(HIDE)rm -rf *.elf *.bin *.asm *.map

@@ -39,7 +39,7 @@ SECTIONS
 	} > DTCM
 
 	/DISCARD/ : {
-		*(.debug .debug_* .riscv .riscv.* .note.*)
+		*(.riscv .riscv.* .note.*)
 	}
 	 
 	. = ALIGN(0x20);
